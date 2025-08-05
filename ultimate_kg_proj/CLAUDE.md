@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Architecture
 
-This is a multi-project repository containing two major knowledge graph and AI agent development frameworks:
+This is a multi-project repository containing major knowledge graph and AI agent development frameworks:
 
 ### cognee-graphrag/
 MCP (Model Context Protocol) server implementation using Cognee for multi-database GraphRAG with Neo4j, LanceDB, and SQLite. Designed for seamless Claude Code integration through MCP tools.
@@ -21,6 +21,15 @@ Google Agent Development Kit templates and examples for building production-grad
 - **Multi-Agent Coordination**: Hierarchical agent systems with specialized roles
 - **Google Cloud Integration**: Vertex AI, Cloud Run deployment patterns
 - **PRP Methodology**: Product Requirements Prompts for systematic agent development
+
+### a2a-google-adk/
+A2A (Agent-to-Agent) protocol compatible AI agents using Google's Agent Development Kit with cross-platform interoperability. Located at `C:\projects\ultimate_kg\ultimate_kg_proj\a2a-google-adk`.
+
+**Core Architecture:**
+- **A2A Protocol Compliance**: Full adherence to Agent-to-Agent protocol specifications for cross-platform communication
+- **Cross-Platform Interoperability**: Seamless communication with LangGraph, CrewAI, Semantic Kernel agents
+- **Google ADK Integration**: Vertex AI models and tools within A2A framework
+- **Agent Network Coordination**: Distributed agent systems across multiple platforms
 
 ## Development Commands
 
@@ -66,6 +75,28 @@ cp .env.example .env  # Configure with API keys
 # Testing agent systems
 python examples/*/run_agent.py  # Test individual agents
 pytest tests/ -v              # Run agent tests if available
+```
+
+### a2a-google-adk/ Commands
+```bash
+# A2A server setup and agent development
+python copy_template.py /path/to/new-a2a-project  # Copy A2A template
+python config/a2a_server_config.py --validate     # Validate A2A configuration
+python examples/basic_a2a_agent/agent.py          # Run basic A2A-compatible agent
+
+# A2A protocol compliance and testing
+pip install a2a-sdk[grpc,telemetry]               # Install A2A SDK
+pip install google-adk google-cloud-aiplatform    # Install Google ADK dependencies
+a2a-validator --server-url http://localhost:8080  # Validate A2A protocol compliance
+
+# Cross-platform agent coordination
+python examples/cross_platform_delegation/test_delegation.py  # Test cross-platform delegation
+python examples/multi_agent_coordination/coordinator.py       # Multi-platform coordination
+python examples/a2a_testing_framework/test_compliance.py      # A2A compliance testing
+
+# Google Cloud deployment
+gcloud auth application-default login              # Authenticate with Google Cloud
+gcloud run deploy --source . --region us-central1 # Deploy A2A server to Cloud Run
 ```
 
 ## Key Integration Workflows

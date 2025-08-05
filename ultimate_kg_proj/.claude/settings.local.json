@@ -21,7 +21,9 @@
       "Bash(cp:*)",
       "Bash(rm:*)",
       "WebFetch(domain:a2a-protocol.org)",
-      "WebFetch(domain:a2a-protocol.org)"
+      "WebFetch(domain:a2a-protocol.org)",
+      "Bash(/generate-template-prp:*)",
+      "WebFetch(domain:docs.google.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
