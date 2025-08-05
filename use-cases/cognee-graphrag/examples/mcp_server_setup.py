@@ -1,0 +1,302 @@
+#!/usr/bin/env python3
+"""
+Complete MCP Server Setup for Cognee GraphRAG.
+
+This script provides a complete setup workflow for getting the Cognee MCP server
+running with your preferred database configuration (Neo4j, LanceDB, SQLite).
+"""
+
+import os
+import subprocess
+import json
+import time
+from pathlib import Path
+from typing import Optional, Dict, Any
+
+
+def clone_cognee_if_needed() -> Optional[Path]:
+    """Clone Cognee repository if not already present."""
+    print("📦 Setting up Cognee MCP Server")
+    
+    # Check if already exists
+    possible_locations = [
+        Path.cwd() / "cognee",
+        Path.home() / "cognee", 
+        Path.cwd().parent / "cognee"
+    ]
+    
+    for location in possible_locations:
+        cognee_mcp_path = location / "cognee-mcp"
+        if cognee_mcp_path.exists():
+            print(f"✅ Found existing Cognee at: {cognee_mcp_path}")
+            return cognee_mcp_path
+    
+    # Clone repository
+    print("📥 Cloning Cognee repository...")
+    try:
+        subprocess.run([
+            "git", "clone", 
+            "https://github.com/topoteretes/cognee.git"
+        ], check=True)
+        
+        cognee_mcp_path = Path.cwd() / "cognee" / "cognee-mcp"
+        if cognee_mcp_path.exists():
+            print(f"✅ Cloned Cognee to: {cognee_mcp_path}")
+            return cognee_mcp_path
+        else:
+            print("❌ Clone succeeded but cognee-mcp directory not found")
+            return None
+            
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to clone Cognee: {e}")
+        return None
+    except FileNotFoundError:
+        print("❌ Git not found. Please install git or clone manually:")
+        print("   git clone https://github.com/topoteretes/cognee.git")
+        return None
+
+
+def install_dependencies(cognee_mcp_path: Path) -> bool:
+    """Install Cognee MCP server dependencies."""
+    print("📦 Installing dependencies...")
+    
+    try:
+        # Check if uv is available
+        subprocess.run(["uv", "--version"], check=True, capture_output=True)
+        
+        # Install dependencies
+        result = subprocess.run([
+            "uv", "sync", "--dev", "--all-extras"
+        ], cwd=cognee_mcp_path, check=True, capture_output=True, text=True)
+        
+        print("✅ Dependencies installed successfully")
+        return True
+        
+    except FileNotFoundError:
+        print("❌ UV not found. Please install UV:")
+        print("   curl -LsSf https://astral.sh/uv/install.sh | sh")
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to install dependencies: {e}")
+        print(f"Error output: {e.stderr}")
+        return False
+
+
+def setup_neo4j() -> bool:
+    """Setup Neo4j database using Docker."""
+    print("🗄️  Setting up Neo4j database...")
+    
+    try:
+        # Check if Docker is available
+        subprocess.run(["docker", "--version"], check=True, capture_output=True)
+        
+        # Check if Neo4j container already exists
+        result = subprocess.run([
+            "docker", "ps", "-a", "--filter", "name=neo4j-cognee"
+        ], capture_output=True, text=True)
+        
+        if "neo4j-cognee" in result.stdout:
+            print("🔄 Neo4j container already exists, starting...")
+            subprocess.run(["docker", "start", "neo4j-cognee"], check=True)
+        else:
+            print("🚀 Creating new Neo4j container...")
+            subprocess.run([
+                "docker", "run", "-d",
+                "--name", "neo4j-cognee",
+                "-p", "7474:7474",
+                "-p", "7687:7687", 
+                "-e", "NEO4J_AUTH=neo4j/password123",
+                "neo4j:latest"
+            ], check=True)
+        
+        # Wait for Neo4j to start
+        print("⏳ Waiting for Neo4j to start...")
+        time.sleep(10)
+        
+        print("✅ Neo4j is running at http://localhost:7474")
+        print("   Username: neo4j")
+        print("   Password: password123")
+        return True
+        
+    except FileNotFoundError:
+        print("❌ Docker not found. Neo4j setup skipped.")
+        print("💡 Install Docker or set up Neo4j manually")
+        return False
+    except subprocess.CalledProcessError as e:
+        print(f"❌ Failed to setup Neo4j: {e}")
+        return False
+
+
+def create_env_file(cognee_mcp_path: Path) -> bool:
+    """Create .env file with database configuration."""
+    print("⚙️  Creating environment configuration...")
+    
+    env_file = cognee_mcp_path / ".env"
+    
+    # Get API key from user or environment
+    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
+    if not api_key:
+        api_key = input("Enter your OpenAI API key: ").strip()
+        if not api_key:
+            print("❌ API key required for MCP server")
+            return False
+    
+    env_content = f"""# Cognee MCP Server Configuration
+# Generated by setup script
+
+# Required: LLM API Key  
+LLM_API_KEY={api_key}
+
+# Database Providers
+VECTOR_DB_PROVIDER=lancedb
+GRAPH_DATABASE_PROVIDER=neo4j
+DB_PROVIDER=sqlite
+
+# Neo4j Configuration
+GRAPH_DATABASE_URL=bolt://localhost:7687
+GRAPH_DATABASE_USERNAME=neo4j
+GRAPH_DATABASE_PASSWORD=password123
+
+# Optional: Embedding Configuration
+EMBEDDING_PROVIDER=fastembed
+EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+EMBEDDING_DIMENSIONS=384
+EMBEDDING_MAX_TOKENS=256
+
+# Environment
+ENV=local
+"""
+    
+    env_file.write_text(env_content)
+    print(f"✅ Created environment file: {env_file}")
+    return True
+
+
+def create_claude_settings(cognee_mcp_path: Path) -> Path:
+    """Create Claude Code MCP settings file."""
+    print("🤖 Creating Claude Code configuration...")
+    
+    settings = {
+        "mcpServers": {
+            "cognee": {
+                "command": "uv",
+                "args": ["run", "python", "src/server.py"],
+                "cwd": str(cognee_mcp_path.resolve()),
+                "env": {
+                    "LLM_API_KEY": "${OPENAI_API_KEY}"
+                }
+            }
+        }
+    }
+    
+    settings_file = Path.cwd() / "claude_settings.json"
+    settings_file.write_text(json.dumps(settings, indent=2))
+    
+    print(f"✅ Created Claude Code settings: {settings_file}")
+    return settings_file
+
+
+def test_mcp_server(cognee_mcp_path: Path) -> bool:
+    """Test MCP server startup."""
+    print("🧪 Testing MCP server...")
+    
+    try:
+        # Start server with timeout
+        process = subprocess.Popen([
+            "uv", "run", "python", "src/server.py"
+        ], cwd=cognee_mcp_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        
+        # Wait briefly for startup
+        try:
+            stdout, stderr = process.communicate(timeout=8)
+            if process.returncode == 0:
+                print("✅ MCP server test successful")
+                return True
+            else:
+                print(f"⚠️  MCP server exited with code {process.returncode}")
+                print(f"Error: {stderr}")
+                return False
+        except subprocess.TimeoutExpired:
+            process.terminate()
+            process.wait()
+            print("✅ MCP server started successfully (test terminated)")
+            return True
+            
+    except Exception as e:
+        print(f"❌ MCP server test failed: {e}")
+        return False
+
+
+def main():
+    """Complete MCP server setup workflow."""
+    print("🚀 Cognee MCP Server Complete Setup")
+    print("=" * 50)
+    
+    print("This will set up:")
+    print("• Cognee MCP server repository")
+    print("• Python dependencies with UV")
+    print("• Neo4j database with Docker")
+    print("• Environment configuration")
+    print("• Claude Code MCP integration")
+    print()
+    
+    # Step 1: Clone Cognee
+    print("1️⃣  Setting up Cognee Repository")
+    cognee_mcp_path = clone_cognee_if_needed()
+    if not cognee_mcp_path:
+        print("❌ Setup failed - could not get Cognee repository")
+        return
+    
+    # Step 2: Install dependencies
+    print("\n2️⃣  Installing Dependencies")
+    if not install_dependencies(cognee_mcp_path):
+        print("❌ Setup failed - dependency installation failed")
+        return
+    
+    # Step 3: Setup Neo4j
+    print("\n3️⃣  Setting up Neo4j Database")
+    neo4j_success = setup_neo4j()
+    if not neo4j_success:
+        print("⚠️  Neo4j setup skipped - will use default databases")
+    
+    # Step 4: Create environment file
+    print("\n4️⃣  Configuring Environment")
+    if not create_env_file(cognee_mcp_path):
+        print("❌ Setup failed - environment configuration failed")
+        return
+    
+    # Step 5: Create Claude settings
+    print("\n5️⃣  Creating Claude Code Configuration")
+    claude_settings_file = create_claude_settings(cognee_mcp_path)
+    
+    # Step 6: Test server
+    print("\n6️⃣  Testing MCP Server")
+    server_works = test_mcp_server(cognee_mcp_path)
+    
+    # Final summary
+    print("\n🎉 Setup Complete!")
+    print("=" * 30)
+    
+    if server_works:
+        print("✅ MCP server is ready to use")
+    else:
+        print("⚠️  MCP server may need additional configuration")
+    
+    print("\n📋 Next Steps:")
+    print(f"1. Add the configuration from {claude_settings_file} to your Claude Code settings.json")
+    print("2. Start the MCP server:")
+    print(f"   cd {cognee_mcp_path}")
+    print("   uv run src/server.py")
+    print("3. Open Claude Code and test:")
+    print("   'List available MCP tools'")
+    print("   'Use cognify to process some documents'")
+    
+    print("\n🔧 Configuration Summary:")
+    print(f"   📁 Cognee MCP: {cognee_mcp_path}")
+    print(f"   🗄️  Neo4j: {'✅ Running' if neo4j_success else '❌ Not configured'}")
+    print(f"   ⚙️  Environment: {cognee_mcp_path / '.env'}")
+    print(f"   🤖 Claude Config: {claude_settings_file}")
+
+
+if __name__ == "__main__":
+    main()

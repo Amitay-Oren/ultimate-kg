@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "cognee": {
+      "command": "uv",
+      "args": ["run", "python", "src/server.py"],
+      "cwd": "/path/to/cognee/cognee-mcp",
+      "env": {
+        "LLM_API_KEY": "${OPENAI_API_KEY}",
+        "VECTOR_DB_PROVIDER": "lancedb",
+        "GRAPH_DATABASE_PROVIDER": "neo4j",
+        "DB_PROVIDER": "sqlite",
+        "GRAPH_DATABASE_URL": "bolt://localhost:7687",
+        "GRAPH_DATABASE_USERNAME": "neo4j",
+        "GRAPH_DATABASE_PASSWORD": "password123",
+        "EMBEDDING_PROVIDER": "fastembed",
+        "EMBEDDING_MODEL": "sentence-transformers/all-MiniLM-L6-v2",
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

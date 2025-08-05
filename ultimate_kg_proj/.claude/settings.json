@@ -1,0 +1,94 @@
+{
+  "permissions": {
+    "allow": [      "Bash(mkdir:*)",
+    "Bash(uv:*)",
+    "Bash(find:*)",
+    "Bash(mv:*)",
+    "Bash(grep:*)",
+    "Bash(npm:*)",
+    "Bash(ls:*)",
+    "Bash(cp:*)",
+    "Write",
+    "Edit",
+    "Bash(chmod:*)",
+    "Bash(touch:*)",
+    "Bash(python3:*)",
+    "Bash(paplay:*)"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run .claude/hooks/voice_notifications/handler.py --voice=alfred"
+          }
+          // ,
+          // {
+          //   "type": "command",
+          //   "command": "uv run .claude/hooks/push_notifications/handler.py --topic=your-topic-here"
+          // }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run .claude/hooks/voice_notifications/handler.py --voice=alfred"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run .claude/hooks/voice_notifications/handler.py --voice=alfred"
+          }
+          // ,
+          // {
+          //   "type": "command",
+          //   "command": "uv run .claude/hooks/push_notifications/handler.py --topic=your-topic-here --priority=4 --tags=🔔"
+          // }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run .claude/hooks/voice_notifications/handler.py --voice=alfred"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run .claude/hooks/pre_compact.py"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run .claude/hooks/session_start.py"
+          }
+        ]
+      }
+    ]
+  }
+}

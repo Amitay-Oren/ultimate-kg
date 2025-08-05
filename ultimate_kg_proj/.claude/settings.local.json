@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ElevenLabs__text_to_speech",
+      "mcp__ElevenLabs__play_audio",
+      "Bash(sudo apt:*)",
+      "Bash(paplay:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(python3:*)",
+      "WebFetch(domain:google.github.io)",
+      "WebFetch(domain:github.com)",
+      "Bash(python:*)",
+      "WebFetch(domain:docs.cognee.ai)",
+      "WebFetch(domain:docs.cognee.ai)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:cloud.google.com)",
+      "Bash(chmod:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "WebFetch(domain:a2a-protocol.org)",
+      "WebFetch(domain:a2a-protocol.org)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "ElevenLabs"
+  ]
+}

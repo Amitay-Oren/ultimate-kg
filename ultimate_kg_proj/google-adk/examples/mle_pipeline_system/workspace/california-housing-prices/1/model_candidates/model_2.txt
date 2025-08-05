@@ -1,0 +1,45 @@
+## Model name
+CatBoost
+
+## Example Python code
+```python
+from catboost import CatBoostRegressor, Pool
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import numpy as np
+import pandas as pd
+
+# Load data (replace with your data loading method)
+data = pd.read_csv('your_data.csv')
+X = data.drop('target', axis=1)
+y = data['target']
+
+# Identify categorical features
+categorical_features_indices = [i for i, col in enumerate(X.columns) if X[col].dtype == 'object'] # or 'category'
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create CatBoost Pool
+train_pool = Pool(X_train, y_train, cat_features=categorical_features_indices)
+test_pool = Pool(X_test, y_test, cat_features=categorical_features_indices)
+
+# Initialize CatBoostRegressor
+model = CatBoostRegressor(iterations=100,
+                            learning_rate=0.05,
+                            depth=6,
+                            loss_function='RMSE',
+                            eval_metric='RMSE',
+                            random_seed=42,
+                            verbose=0)
+
+# Train the model
+model.fit(train_pool, eval_set=test_pool, early_stopping_rounds=10)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print(f'RMSE: {rmse}')
+```

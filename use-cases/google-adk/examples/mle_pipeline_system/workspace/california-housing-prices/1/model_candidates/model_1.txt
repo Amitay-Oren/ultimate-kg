@@ -1,0 +1,53 @@
+## Model name
+LightGBM
+
+## Example Python code
+```python
+import lightgbm as lgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import numpy as np
+import pandas as pd
+
+# Load data (replace with your data loading method)
+data = pd.read_csv('your_data.csv')
+X = data.drop('target', axis=1)
+y = data['target']
+
+# Handle categorical features (if any)
+for col in X.columns:
+    if X[col].dtype == 'object':  # or 'category'
+        X[col] = X[col].astype('category')
+        X[col] = X[col].cat.codes  # Convert to numerical codes
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create LightGBM dataset
+train_data = lgb.Dataset(X_train, label=y_train)
+test_data = lgb.Dataset(X_test, label=y_test, reference=train_data)
+
+# Set parameters
+params = {
+    'objective': 'regression',
+    'metric': 'rmse',
+    'boosting_type': 'gbdt',
+    'num_leaves': 31,
+    'learning_rate': 0.05,
+    'feature_fraction': 0.9
+}
+
+# Train the model
+model = lgb.train(params,
+                    train_data,
+                    num_boost_round=100,
+                    valid_sets=[test_data],
+                    early_stopping_rounds=10)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print(f'RMSE: {rmse}')
+```
