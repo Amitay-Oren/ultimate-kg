@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "cognee": {
+      "command": "uv",
+      "args": [
+        "run",
+        "python",
+        "src/server.py"
+      ],
+      "cwd": "C:\\projects\\ultimate_kg\\ultimate_kg_proj\\context\\cognee-graphrag\\cognee\\cognee-mcp",
+      "env": {
+        "LLM_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  }
+}

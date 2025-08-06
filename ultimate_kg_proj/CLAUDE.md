@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a multi-project repository containing major knowledge graph and AI agent development frameworks:
 
-### cognee-graphrag/
+### context/cognee-graphrag/
 MCP (Model Context Protocol) server implementation using Cognee for multi-database GraphRAG with Neo4j, LanceDB, and SQLite. Designed for seamless Claude Code integration through MCP tools.
 
 **Core Architecture:**
@@ -14,7 +14,7 @@ MCP (Model Context Protocol) server implementation using Cognee for multi-databa
 - **Multi-Database**: Neo4j (graph), LanceDB (vectors), SQLite (metadata) working in coordination
 - **Knowledge Processing**: Document → Entity extraction → Multi-database storage → Semantic search
 
-### google-adk/
+### context/google-adk/
 Google Agent Development Kit templates and examples for building production-grade AI agents and multi-agent systems.
 
 **Core Architecture:**
@@ -22,7 +22,7 @@ Google Agent Development Kit templates and examples for building production-grad
 - **Google Cloud Integration**: Vertex AI, Cloud Run deployment patterns
 - **PRP Methodology**: Product Requirements Prompts for systematic agent development
 
-### a2a-google-adk/
+### context/a2a-google-adk/
 A2A (Agent-to-Agent) protocol compatible AI agents using Google's Agent Development Kit with cross-platform interoperability. Located at `C:\projects\ultimate_kg\ultimate_kg_proj\a2a-google-adk`.
 
 **Core Architecture:**
